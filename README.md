@@ -5,6 +5,17 @@ A modern, responsive web application for **MALERDOS**, a professional supplier o
 The website showcases the company's products, municipal and environmental projects, and provides a contact form for inquiries.
 
 🌐 **Live Demo:** [https://malerdos-eco.netlify.app](https://malerdos-eco.netlify.app)
+---
+## Deployment 
+
+This project is automatically deployed via Netlify from the main branch.
+Every push to GitHub triggers a new build and update to the live site.
+
+👨‍💻 Author
+
+Michalis Karadimos
+📍 Greece
+📧 karadimosmixalis@gmail.com
 
 ---
 
@@ -47,13 +58,3 @@ npm install
 npm run dev
 
 
-## Deployment 
-
-This project is automatically deployed via Netlify from the main branch.
-Every push to GitHub triggers a new build and update to the live site.
-
-👨‍💻 Author
-
-Michalis Karadimos
-📍 Greece
-📧 karadimosmixalis@gmail.com
