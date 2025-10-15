@@ -47,7 +47,7 @@ npm install
 npm run dev
 
 
-Deployment
+## Deployment 
 
 This project is automatically deployed via Netlify from the main branch.
 Every push to GitHub triggers a new build and update to the live site.
