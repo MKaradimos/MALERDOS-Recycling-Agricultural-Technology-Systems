@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 export const Contact = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,18 +20,24 @@ export const Contact = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Encodes form data in a way Netlify understands
+  const encode = (data: Record<string, string>) =>
+    Object.keys(data)
+      .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+      .join('&');
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    const form = e.currentTarget;
-    const formDataObj = new FormData(form);
 
     try {
       await fetch('/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formDataObj as any).toString(),
+        body: encode({
+          'form-name': 'contact',
+          ...formData,
+        }),
       });
 
       toast({
@@ -38,6 +45,7 @@ export const Contact = () => {
         description: 'Το μήνυμά σας εστάλη επιτυχώς.',
         duration: 5000,
       });
+
       setFormData({ name: '', email: '', phone: '', message: '' });
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -60,6 +68,7 @@ export const Contact = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
+          {/* Ενότητα στοιχείων επικοινωνίας */}
           <div>
             <Card className="p-8 mb-6">
               <div className="space-y-6">
@@ -119,6 +128,7 @@ export const Contact = () => {
             </Card>
           </div>
 
+          {/* Ενότητα φόρμας */}
           <Card className="p-8">
             <form
               name="contact"
@@ -128,54 +138,44 @@ export const Contact = () => {
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-              {/* Hidden field for Netlify form name */}
               <input type="hidden" name="form-name" value="contact" />
-
-              {/* Honeypot anti-spam field */}
               <p className="hidden">
                 <label>
                   Don’t fill this out: <input name="bot-field" />
                 </label>
               </p>
 
-              <div>
-                <Input
-                  name="name"
-                  placeholder={t('contact.form.name')}
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="email"
-                  name="email"
-                  placeholder={t('contact.form.email')}
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="tel"
-                  name="phone"
-                  placeholder={t('contact.form.phone')}
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-              <div>
-                <Textarea
-                  name="message"
-                  placeholder={t('contact.form.message')}
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  rows={6}
-                  required
-                />
-              </div>
+              <Input
+                name="name"
+                placeholder={t('contact.form.name')}
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+              <Input
+                type="email"
+                name="email"
+                placeholder={t('contact.form.email')}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+              />
+              <Input
+                type="tel"
+                name="phone"
+                placeholder={t('contact.form.phone')}
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+              <Textarea
+                name="message"
+                placeholder={t('contact.form.message')}
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                rows={6}
+                required
+              />
+
               <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? 'Αποστολή...' : t('contact.form.submit')}
               </Button>

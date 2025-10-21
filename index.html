@@ -18,13 +18,8 @@
   </head>
 
   <body>
-    <!-- Netlify form detection (hidden dummy form) -->
-    <form
-      name="contact"
-      netlify
-      netlify-honeypot="bot-field"
-      hidden
-    >
+    <!-- Netlify hidden form to trigger detection -->
+    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
       <input type="text" name="name" />
       <input type="email" name="email" />
       <input type="tel" name="phone" />
