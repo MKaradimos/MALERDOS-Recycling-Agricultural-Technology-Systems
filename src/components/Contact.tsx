@@ -6,15 +6,6 @@ import { Card } from '@/components/ui/card';
 import { Phone, Mail, MapPin, Instagram } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { z } from 'zod';
-
-const contactSchema = z.object({
-  name: z.string().trim().min(1, 'Το όνομα είναι υποχρεωτικό').max(100, 'Το όνομα πρέπει να είναι λιγότερο από 100 χαρακτήρες'),
-  email: z.string().trim().email('Μη έγκυρη διεύθυνση email').max(255, 'Το email πρέπει να είναι λιγότερο από 255 χαρακτήρες'),
-  phone: z.string().max(20, 'Το τηλέφωνο πρέπει να είναι λιγότερο από 20 χαρακτήρες').optional(),
-  message: z.string().trim().min(1, 'Το μήνυμα είναι υποχρεωτικό').max(1000, 'Το μήνυμα πρέπει να είναι λιγότερο από 1000 χαρακτήρες'),
-});
 
 export const Contact = () => {
   const { t } = useLanguage();
@@ -28,44 +19,34 @@ export const Contact = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    try {
-      // Validate form data
-      const validatedData = contactSchema.parse(formData);
+    const form = e.currentTarget;
+    const formDataObj = new FormData(form);
 
-      // Call edge function to send email
-      const { error } = await supabase.functions.invoke('send-contact-email', {
-        body: validatedData,
+    try {
+      await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formDataObj as any).toString(),
       });
 
-      if (error) throw error;
-
       toast({
-        title: "Ευχαριστούμε για την επικοινωνία!",
-        description: "Θα σας καλέσουμε σύντομα.",
+        title: 'Ευχαριστούμε για την επικοινωνία!',
+        description: 'Το μήνυμά σας εστάλη επιτυχώς.',
         duration: 5000,
       });
       setFormData({ name: '', email: '', phone: '', message: '' });
     } catch (error) {
-      console.error('Error sending message:', error);
-      if (error instanceof z.ZodError) {
-        toast({
-          title: 'Σφάλμα επικύρωσης',
-          description: error.errors[0].message,
-          variant: 'destructive',
-          duration: 5000,
-        });
-      } else {
-        toast({
-          title: 'Σφάλμα αποστολής',
-          description: 'Παρουσιάστηκε πρόβλημα κατά την αποστολή του μηνύματος. Παρακαλώ δοκιμάστε ξανά.',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      }
+      console.error('Error submitting form:', error);
+      toast({
+        title: 'Σφάλμα αποστολής',
+        description: 'Παρουσιάστηκε πρόβλημα κατά την αποστολή. Παρακαλώ δοκιμάστε ξανά.',
+        variant: 'destructive',
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +70,7 @@ export const Contact = () => {
                   <div>
                     <h3 className="font-semibold mb-1">{t('contact.address')}</h3>
                     <p className="text-muted-foreground">ΜΑΛΕΡΔΟΣ, Π., & ΣΙΑ Ο.Ε.</p>
-                    <p className="text-muted-foreground">Εθνικής οδού Αθηνών Λαμίας 113 χλμ</p>
+                    <p className="text-muted-foreground">Εθνικής Οδού Αθηνών Λαμίας 113 χλμ</p>
                     <p className="text-muted-foreground">Κάστρο 322 00</p>
                   </div>
                 </div>
@@ -112,8 +93,8 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">{t('contact.email')}</h3>
-                    <a href="mailto:malerdospanos25@gmail.com" className="text-muted-foreground hover:text-primary">
-                      malerdospanos25@gmail.com
+                    <a href="mailto:info@malerdos.gr" className="text-muted-foreground hover:text-primary">
+                      info@malerdos.gr
                     </a>
                   </div>
                 </div>
@@ -139,9 +120,27 @@ export const Contact = () => {
           </div>
 
           <Card className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              name="contact"
+              method="POST"
+              data-netlify="true"
+              data-netlify-honeypot="bot-field"
+              onSubmit={handleSubmit}
+              className="space-y-6"
+            >
+              {/* Hidden field for Netlify form name */}
+              <input type="hidden" name="form-name" value="contact" />
+
+              {/* Honeypot anti-spam field */}
+              <p className="hidden">
+                <label>
+                  Don’t fill this out: <input name="bot-field" />
+                </label>
+              </p>
+
               <div>
                 <Input
+                  name="name"
                   placeholder={t('contact.form.name')}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -151,6 +150,7 @@ export const Contact = () => {
               <div>
                 <Input
                   type="email"
+                  name="email"
                   placeholder={t('contact.form.email')}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -160,6 +160,7 @@ export const Contact = () => {
               <div>
                 <Input
                   type="tel"
+                  name="phone"
                   placeholder={t('contact.form.phone')}
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -167,6 +168,7 @@ export const Contact = () => {
               </div>
               <div>
                 <Textarea
+                  name="message"
                   placeholder={t('contact.form.message')}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
